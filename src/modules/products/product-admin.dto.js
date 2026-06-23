@@ -1,0 +1,24 @@
+export class ProductAdminDTO {
+  constructor(product) {
+    this.id = product._id
+    this.sellerId = product.sellerId
+    this.categoryId = product.categoryId
+    this.type = product.type
+    this.name = product.name
+    this.slug = product.slug
+    this.description = product.description
+    this.price = product.price
+    this.promotionalPrice = product.promotionalPrice
+    this.previewImages = product.previewImages
+    this.digitalFiles = product.digitalFiles
+    this.downloadPlans = product.downloadPlans
+    this.stock = product.stock
+    this.dimensions = product.dimensions
+    this.status = product.status
+    this.rejectionReason = product.rejectionReason
+    this.isActive = product.isActive
+    this.tags = product.tags
+    this.createdAt = product.createdAt
+    this.updatedAt = product.updatedAt
+  }
+}
