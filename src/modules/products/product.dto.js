@@ -1,3 +1,11 @@
+function sortImages(images = []) {
+  return [...images].sort((a, b) => {
+    if (a.isMain && !b.isMain) return -1
+    if (!a.isMain && b.isMain) return 1
+    return (a.order || 0) - (b.order || 0)
+  })
+}
+
 export class ProductDTO {
   constructor(product) {
     this.id = product._id
@@ -10,7 +18,7 @@ export class ProductDTO {
     this.price = product.price
     this.promotionalPrice = product.promotionalPrice
 
-    this.previewImages = product.previewImages
+    this.previewImages = sortImages(product.previewImages || [])
 
     this.digitalFiles = undefined
 

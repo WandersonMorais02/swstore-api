@@ -5,7 +5,11 @@ const fileSchema = z.object({
   url: z.string().nullable().optional(),
   path: z.string().optional(),
   mimeType: z.string().optional(),
-  size: z.number().optional()
+  size: z.number().optional(),
+
+  alt: z.string().optional(),
+  isMain: z.boolean().optional(),
+  order: z.number().int().min(0).optional()
 })
 
 const downloadPlanSchema = z.object({

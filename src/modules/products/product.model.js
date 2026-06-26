@@ -5,7 +5,19 @@ const fileSchema = new mongoose.Schema({
   url: String,
   path: String,
   mimeType: String,
-  size: Number
+  size: Number,
+
+  alt: String,
+
+  isMain: {
+    type: Boolean,
+    default: false
+  },
+
+  order: {
+    type: Number,
+    default: 0
+  }
 }, { _id: false })
 
 const downloadPlanSchema = new mongoose.Schema({

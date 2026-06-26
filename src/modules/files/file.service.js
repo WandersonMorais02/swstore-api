@@ -41,10 +41,10 @@ async function uploadProductPreview(file) {
 
   await sharp(file.path)
     .resize({
-      width: 900,
+      width: 1200,
       withoutEnlargement: true
     })
-    .webp({ quality: 55 })
+    .webp({ quality: 72 })
     .toFile(outputPath)
 
   await removeTemp(file.path)
@@ -138,8 +138,47 @@ async function uploadCategoryImage(file) {
   }
 }
 
+async function uploadUserAvatar(file) {
+  if (!file) {
+    throw new AppError('Arquivo não enviado', 400)
+  }
+
+  if (!isImage(file.mimetype)) {
+    await removeTemp(file.path)
+    throw new AppError('Foto precisa ser JPG, PNG ou WEBP', 400)
+  }
+
+  const outputDir = path.resolve('uploads', 'public', 'avatars')
+  ensureDir(outputDir)
+
+  const filename = `${path.parse(file.filename).name}.webp`
+  const outputPath = path.join(outputDir, filename)
+
+  await sharp(file.path)
+    .resize({
+      width: 400,
+      height: 400,
+      fit: 'cover'
+    })
+    .webp({ quality: 75 })
+    .toFile(outputPath)
+
+  await removeTemp(file.path)
+
+  const relativePath = path.join('uploads', 'public', 'avatars', filename)
+
+  return {
+    name: file.originalname,
+    url: getPublicUrl(relativePath),
+    path: relativePath,
+    mimeType: 'image/webp',
+    size: file.size
+  }
+}
+
 export const fileService = {
   uploadProductPreview,
   uploadProductOriginal,
-  uploadCategoryImage
+  uploadCategoryImage,
+  uploadUserAvatar
 }

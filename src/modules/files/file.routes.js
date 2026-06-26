@@ -29,3 +29,10 @@ fileRoutes.post(
   upload.single('file'),
   fileController.uploadCategoryImage
 )
+
+fileRoutes.post(
+  '/users/avatar',
+  allowRoles('ADMIN', 'SELLER', 'CUSTOMER'),
+  upload.single('file'),
+  fileController.uploadUserAvatar
+)

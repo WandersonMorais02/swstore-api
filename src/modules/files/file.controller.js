@@ -18,8 +18,15 @@ async function uploadCategoryImage(req, res) {
   return res.status(201).json(file)
 }
 
+async function uploadUserAvatar(req, res) {
+  const file = await fileService.uploadUserAvatar(req.file)
+
+  return res.status(201).json(file)
+}
+
 export const fileController = {
   uploadProductPreview,
   uploadProductOriginal,
-  uploadCategoryImage
+  uploadCategoryImage,
+  uploadUserAvatar
 }

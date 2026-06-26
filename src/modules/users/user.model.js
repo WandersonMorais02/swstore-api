@@ -1,5 +1,13 @@
 import mongoose from 'mongoose'
 
+const avatarSchema = new mongoose.Schema({
+  name: String,
+  url: String,
+  path: String,
+  mimeType: String,
+  size: Number
+}, { _id: false })
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -20,6 +28,8 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false
   },
+
+  avatar: avatarSchema,
 
   role: {
     type: String,

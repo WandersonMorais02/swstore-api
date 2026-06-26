@@ -8,6 +8,48 @@ import { Category } from '../categories/category.model.js'
 import { AppError } from '../../shared/errors/AppError.js'
 import { slugify } from '../../shared/utils/slugify.js'
 
+function normalizePreviewImages(images = []) {
+  return images.map((image, index) => ({
+    ...image,
+    alt: image.alt || image.name || '',
+    isMain: index === 0 ? true : image.isMain === true,
+    order: image.order ?? index
+  })).map((image, index, array) => {
+    if (array.some(item => item.isMain)) {
+      return {
+        ...image,
+        isMain: image.isMain === true && index === array.findIndex(item => item.isMain)
+      }
+    }
+
+    return {
+      ...image,
+      isMain: index === 0
+    }
+  })
+}
+
+function normalizeDigitalFiles(files = []) {
+  return files.map((file, index) => ({
+    ...file,
+    order: file.order ?? index
+  }))
+}
+
+function normalizeProductFiles(data) {
+  const normalized = { ...data }
+
+  if (data.previewImages) {
+    normalized.previewImages = normalizePreviewImages(data.previewImages)
+  }
+
+  if (data.digitalFiles) {
+    normalized.digitalFiles = normalizeDigitalFiles(data.digitalFiles)
+  }
+
+  return normalized
+}
+
 async function validateSeller(sellerId) {
   const seller = await User.findById(sellerId)
 
@@ -55,6 +97,10 @@ function validateProductByType(data) {
   }
 
   if (isPhysical) {
+    if (!data.previewImages || data.previewImages.length === 0) {
+      throw new AppError('Produto físico precisa de pelo menos uma imagem', 400)
+    }
+
     if (!data.stock || data.stock <= 0) {
       throw new AppError('Produto físico precisa de estoque', 400)
     }
@@ -80,9 +126,11 @@ async function create(data, currentUser) {
   await validateSeller(sellerId)
   await validateCategory(data.categoryId)
 
-  validateProductByType(data)
+  const normalizedData = normalizeProductFiles(data)
 
-  const slug = slugify(data.name)
+  validateProductByType(normalizedData)
+
+  const slug = slugify(normalizedData.name)
 
   const exists = await Product.findOne({ slug })
 
@@ -91,12 +139,12 @@ async function create(data, currentUser) {
   }
 
   const product = await Product.create({
-    ...data,
+    ...normalizedData,
     sellerId,
     slug,
     status: currentUser.role === 'ADMIN'
       ? 'APPROVED'
-      : data.status || 'PENDING_APPROVAL'
+      : normalizedData.status || 'PENDING_APPROVAL'
   })
 
   return new ProductAdminDTO(product)
@@ -126,7 +174,7 @@ async function findPublic(filters = {}) {
 
   const products = await Product.find(query)
     .populate('categoryId', 'name slug')
-    .populate('sellerId', 'name sellerProfile.storeName')
+    .populate('sellerId', 'name avatar sellerProfile.storeName')
     .sort({ createdAt: -1 })
 
   return products.map(product => new ProductDTO(product))
@@ -149,7 +197,7 @@ async function findAdmin(filters = {}) {
 
   const products = await Product.find(query)
     .populate('categoryId', 'name slug')
-    .populate('sellerId', 'name email sellerProfile')
+    .populate('sellerId', 'name email avatar sellerProfile')
     .sort({ createdAt: -1 })
 
   return products.map(product => new ProductAdminDTO(product))
@@ -170,7 +218,7 @@ async function findPublicBySlug(slug) {
     status: 'APPROVED'
   })
     .populate('categoryId', 'name slug')
-    .populate('sellerId', 'name sellerProfile.storeName')
+    .populate('sellerId', 'name avatar sellerProfile.storeName')
 
   if (!product) {
     throw new AppError('Produto não encontrado', 404)
@@ -182,7 +230,7 @@ async function findPublicBySlug(slug) {
 async function findAdminById(id) {
   const product = await Product.findById(id)
     .populate('categoryId', 'name slug')
-    .populate('sellerId', 'name email sellerProfile')
+    .populate('sellerId', 'name email avatar sellerProfile')
 
   if (!product) {
     throw new AppError('Produto não encontrado', 404)
@@ -209,15 +257,17 @@ async function update(id, data, currentUser) {
     await validateCategory(data.categoryId)
   }
 
+  const normalizedData = normalizeProductFiles(data)
+
   const mergedData = {
     ...product.toObject(),
-    ...data
+    ...normalizedData
   }
 
   validateProductByType(mergedData)
 
-  if (data.name && data.name !== product.name) {
-    const slug = slugify(data.name)
+  if (normalizedData.name && normalizedData.name !== product.name) {
+    const slug = slugify(normalizedData.name)
 
     const exists = await Product.findOne({
       slug,
@@ -231,7 +281,7 @@ async function update(id, data, currentUser) {
     product.slug = slug
   }
 
-  Object.assign(product, data)
+  Object.assign(product, normalizedData)
 
   if (!isAdmin) {
     product.status = 'PENDING_APPROVAL'
