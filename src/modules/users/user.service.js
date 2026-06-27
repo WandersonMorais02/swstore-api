@@ -26,12 +26,14 @@ async function create(data) {
     email: data.email,
     password: passwordHash,
     role,
+    avatar: data.avatar,
     sellerProfile: role === 'SELLER'
       ? {
           storeName: data.sellerProfile?.storeName,
           document: data.sellerProfile?.document,
           phone: data.sellerProfile?.phone,
-          commissionRate: 5,
+          customFeePercent: data.sellerProfile?.customFeePercent ?? null,
+          useCustomFee: data.sellerProfile?.useCustomFee ?? false,
           isApproved: false
         }
       : undefined
@@ -88,6 +90,30 @@ async function update(id, data) {
   return new UserDTO(user)
 }
 
+async function updateMe(userId, data) {
+  const user = await User.findById(userId)
+
+  if (!user) {
+    throw new AppError('Usuário não encontrado', 404)
+  }
+
+  const allowedData = {}
+
+  if (data.name !== undefined) {
+    allowedData.name = data.name
+  }
+
+  if (data.avatar !== undefined) {
+    allowedData.avatar = data.avatar
+  }
+
+  Object.assign(user, allowedData)
+
+  await user.save()
+
+  return new UserDTO(user)
+}
+
 async function remove(id) {
   const user = await User.findById(id)
 
@@ -107,5 +133,6 @@ export const userService = {
   findAll,
   findById,
   update,
+  updateMe,
   remove
 }
