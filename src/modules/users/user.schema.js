@@ -45,3 +45,8 @@ export const updateUserSchema = z.object({
     isApproved: z.boolean().optional()
   }).optional()
 })
+
+export const updateMeSchema = z.object({
+  name: z.string().min(2).optional(),
+  avatar: fileSchema.nullable().optional()
+})

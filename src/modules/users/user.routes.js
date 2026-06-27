@@ -9,10 +9,12 @@ export const userRoutes = Router()
 userRoutes.post('/', userController.create)
 
 userRoutes.use(authMiddleware)
+
+userRoutes.patch('/me', userController.updateMe)
+
 userRoutes.use(allowRoles('ADMIN'))
 
 userRoutes.get('/', userController.index)
 userRoutes.get('/:id', userController.show)
 userRoutes.patch('/:id', userController.update)
 userRoutes.delete('/:id', userController.remove)
-userRoutes.patch('/me', authMiddleware, userController.updateMe)

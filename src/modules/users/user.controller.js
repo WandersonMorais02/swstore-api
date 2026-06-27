@@ -1,5 +1,9 @@
 import { userService } from './user.service.js'
-import { createUserSchema, updateUserSchema } from './user.schema.js'
+import {
+  createUserSchema,
+  updateUserSchema,
+  updateMeSchema
+} from './user.schema.js'
 
 async function create(req, res) {
   const data = createUserSchema.parse(req.body)
@@ -29,6 +33,14 @@ async function update(req, res) {
   return res.json(user)
 }
 
+async function updateMe(req, res) {
+  const data = updateMeSchema.parse(req.body)
+
+  const user = await userService.updateMe(req.user.id, data)
+
+  return res.json(user)
+}
+
 async function remove(req, res) {
   const result = await userService.remove(req.params.id)
 
@@ -40,5 +52,6 @@ export const userController = {
   index,
   show,
   update,
+  updateMe,
   remove
 }
