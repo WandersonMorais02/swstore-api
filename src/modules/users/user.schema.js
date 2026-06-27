@@ -48,5 +48,5 @@ export const updateUserSchema = z.object({
 
 export const updateMeSchema = z.object({
   name: z.string().min(2).optional(),
-  avatar: fileSchema.nullable().optional()
+  avatar: avatarSchema
 })
